@@ -17,7 +17,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class ScraperController extends Controller
 {
     /**
-     * @Route(path="/positions", methods={"GET"}, name="scraper_positions_lite")
+     * @Route(path="/positions/lite", methods={"GET"}, name="scraper_positions_lite")
      * @param Request $request
      *
      * @return JsonResponse
@@ -42,6 +42,63 @@ class ScraperController extends Controller
             $rowIndex = 0;
 
             $crawler->filter("{$selector} table.table > thead.thead-dark tr th")->each(function ($node) {
+                global $header;
+                array_push($header, $node->text());
+            });
+
+            $crawler->filter("{$selector} table.table > tbody tr")->each(function ($node) {
+                global $rowIndex;
+                $node->filter('td')->each(function ($item) {
+                    global $body, $rowIndex;
+                    $body[$rowIndex][] = $item->text();
+                });
+                $rowIndex++;
+                //array_push($body, $node->text());
+            });
+
+            $positionsTable = [
+                'header' => $header,
+                'body' => $body,
+            ];
+
+            $table[$key] = $positionsTable;
+        }
+
+
+        $response = [
+            'status' => 200,
+            'data' => $table
+        ];
+
+        return new JsonResponse($response, $response['status']);
+    }
+
+    /**
+     * @Route(path="/positions/full", methods={"GET"}, name="scraper_positions")
+     * @param Request $request
+     *
+     * @return JsonResponse
+     */
+    public function getTeamsPositionTable(Request $request)
+    {
+        $client = new Client();
+        $crawler = $client->request('GET', 'https://www.tigresdearaguabbc.com/posiciones.php');
+
+        $tabContentSelectors = [
+            'regular_round' => '#r',
+            'playoffs' => '#d',
+            'semifinal' => '#l',
+            'final' => '#w',
+        ];
+
+        $table = [];
+        foreach ($tabContentSelectors as $key => $selector) {
+            global $header, $body, $rowIndex;
+            $header = [];
+            $body = [];
+            $rowIndex = 0;
+
+            $crawler->filter("{$selector} table.table > thead tr th")->each(function ($node) {
                 global $header;
                 array_push($header, $node->text());
             });
