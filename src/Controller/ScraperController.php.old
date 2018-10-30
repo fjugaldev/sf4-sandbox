@@ -25,13 +25,13 @@ class ScraperController extends Controller
     public function getTeamsPositionTableLite(Request $request)
     {
         $client = new Client();
-        $crawler = $client->request('GET', 'https://www.lvbp.com');
+        $crawler = $client->request('GET', 'https://www.tigresdearaguabbc.com');
 
         $tabContentSelectors = [
-            'regular_round' => '#R',
-            'playoffs'      => '#D',
-            'semifinal'     => '#L',
-            'final'         => '#W',
+            'regular_round' => '#pills-r',
+            'playoffs' => '#pills-d',
+            'semifinal' => '#pills-l',
+            'final' => '#pills-w',
         ];
 
         $table = [];
@@ -41,7 +41,7 @@ class ScraperController extends Controller
             $body = [];
             $rowIndex = 0;
 
-            $crawler->filter("{$selector} table.table > thead tr th")->each(function ($node) {
+            $crawler->filter("{$selector} table.table > thead.thead-dark tr th")->each(function ($node) {
                 global $header;
                 array_push($header, $node->text());
             });
@@ -58,7 +58,7 @@ class ScraperController extends Controller
 
             $positionsTable = [
                 'header' => $header,
-                'body'   => $body,
+                'body' => $body,
             ];
 
             $table[$key] = $positionsTable;
@@ -67,7 +67,7 @@ class ScraperController extends Controller
 
         $response = [
             'status' => 200,
-            'data'   => $table
+            'data' => $table
         ];
 
         return new JsonResponse($response, $response['status']);
@@ -82,14 +82,13 @@ class ScraperController extends Controller
     public function getTeamsPositionTable(Request $request)
     {
         $client = new Client();
-        $crawler = $client->request('GET', 'https://www.lvbp.com/posiciones.php');
+        $crawler = $client->request('GET', 'https://www.tigresdearaguabbc.com/posiciones.php');
 
         $tabContentSelectors = [
-            'regular_round'      => '#r',
-            'particulars_series' => '#s',
-            'playoffs'           => '#d',
-            'semifinal'          => '#l',
-            'final'              => '#w',
+            'regular_round' => '#r',
+            'playoffs' => '#d',
+            'semifinal' => '#l',
+            'final' => '#w',
         ];
 
         $table = [];
@@ -116,7 +115,7 @@ class ScraperController extends Controller
 
             $positionsTable = [
                 'header' => $header,
-                'body'   => $body,
+                'body' => $body,
             ];
 
             $table[$key] = $positionsTable;
@@ -125,7 +124,7 @@ class ScraperController extends Controller
 
         $response = [
             'status' => 200,
-            'data'   => $table
+            'data' => $table
         ];
 
         return new JsonResponse($response, $response['status']);
@@ -140,20 +139,15 @@ class ScraperController extends Controller
     public function getBattingLeaders(Request $request)
     {
         $client = new Client();
-        $crawler = $client->request('GET', 'https://www.lvbp.com#HR');
-        $link = $crawler->selectLink('HR')->link();
-        dump($link->getUri());
-        $client->click($link);
-        dump($crawler->text());
-        die();
+        $crawler = $client->request('GET', 'https://www.tigresdearaguabbc.com');
 
         $tabContentSelectors = [
             'AVG' => '#AVG',
-            'CA'  => '#CA',
-            'HR'  => '#HR',
-            'CI'  => '#CI',
-            'BR'  => '#BR',
-            'H'   => '#H',
+            'CA' => '#CA',
+            'HR' => '#HR',
+            'CI' => '#CI',
+            'BR' => '#BR',
+            'H' => '#H',
         ];
 
         global $table;
@@ -162,12 +156,10 @@ class ScraperController extends Controller
             global $key_global;
             $key_global = $key;
 
-            dump($crawler->text());die();
-
-            $crawler->filter("{$selector} div.home-leaders-row")->each(function ($node) {
+            $crawler->filter("{$selector} .list-group .list-group-item")->each(function ($node) {
                 global $name;
-                $name = trim(preg_replace('/\s+/', ' ', $node->text()));
-                $node->filter('div.col-md-1')->each(function ($item) {
+                $name = $node->text();
+                $node->filter('div')->each(function ($item) {
                     global $table, $key_global, $name;
                     $table[$key_global][] = [
                         'name'  => str_replace($item->text(), '', $name),
@@ -177,9 +169,10 @@ class ScraperController extends Controller
             });
         }
 
+
         $response = [
             'status' => 200,
-            'data'   => $table
+            'data' => $table
         ];
 
         return new JsonResponse($response, $response['status']);
@@ -194,7 +187,7 @@ class ScraperController extends Controller
     public function getPitchingLeaders(Request $request)
     {
         $client = new Client();
-        $crawler = $client->request('GET', 'https://www.lvbp.com');
+        $crawler = $client->request('GET', 'https://www.tigresdearaguabbc.com');
 
         $tabContentSelectors = [
             'EFE' => '#EFE',
